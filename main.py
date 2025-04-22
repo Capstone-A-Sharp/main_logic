@@ -15,19 +15,25 @@ context = {
     "reading": False,
     "row": 0,
     "matrix": None,
-    "calib_mode": 0,
+    "calib_mode": 0,          # 1: 보정 중, 0: 일반 제어 모드
     "direction": 1,
     "slope_factor": 1.0,
+    "calib_done": False       # 보정 완료 여부
 }
 
-
-# 보정 스위치가 활성화되었을 때 수행할 함수
+# 보정 스위치가 활성화되었을 때 (보정 중) 압력 추적 함수
 def handle_calibration(avg_values):
-    calibrator.record_max_pressure(avg_values)
-    calibrator.record_min_pressure(avg_values)
-    controller.update_threshold(calibrator.get_threshold())
-    context["calib_mode"] = 0
+    calibrator.update_pressure_extremes(avg_values)
+    print("[보정] 압력 수집 중...")
 
+# 보정 스위치가 꺼졌을 때 기준값 확정
+def finalize_calibration():
+    threshold = calibrator.get_threshold()
+    if threshold is not None:
+        controller.update_threshold(threshold)
+        context["calib_done"] = True
+        print("[보정] 기준 압력값 적용 완료.")
+    context["calib_mode"] = 0
 
 # 실질적인 속도 제어 수행 함수
 def handle_control(avg_values, amplified_matrix):
@@ -35,7 +41,6 @@ def handle_control(avg_values, amplified_matrix):
         avg_values, ser, context["slope_factor"], context["direction"]
     )
     return update_image(amplified_matrix)
-
 
 # 센서 데이터 통합 처리 루프
 def update_wrapper(*args):
@@ -51,11 +56,12 @@ def update_wrapper(*args):
     if amplified_matrix is not None and avg_values is not None:
         if context["calib_mode"] == 1:
             handle_calibration(avg_values)
+        elif not context["calib_done"]:
+            finalize_calibration()
         else:
             return handle_control(avg_values, amplified_matrix)
 
     return []
-
 
 # 프로그램 시작
 if __name__ == "__main__":

@@ -1,12 +1,11 @@
 from config import BASE_PWM
 
-
 class SpeedController:
     def __init__(self, max_speed=35, alpha=0.8):
         self.speed = BASE_PWM
         self.max_speed = max_speed
         self.alpha = alpha
-        self.threshold = None
+        self.threshold = None  # 기준 압력값
 
     def update_threshold(self, threshold):
         self.threshold = threshold
@@ -20,6 +19,7 @@ class SpeedController:
         push_sum = sum(avg_values[7:])  # 손바닥 영역의 압력 합
         ratio = push_sum / self.threshold
 
+        # 속도 제어 로직
         if ratio >= 0.6:
             self.speed = min(self.speed * 1.1, self.max_speed)
             print("[속도 증가] 강하게 쥠 감지됨.")
@@ -33,14 +33,12 @@ class SpeedController:
         adjusted_speed = self.speed * slope_factor
         adjusted_speed = min(adjusted_speed, self.max_speed)
 
-        # 방향 보정: 후진은 음수 PWM
+        # 방향 보정 (후진일 경우 음수)
         pwm_signal = int(adjusted_speed) if direction == 1 else -int(adjusted_speed)
 
-        # Pwm 값 전송하기
+        # 시리얼로 PWM 값 전송
         if ser.is_open:
             ser.write(f"{pwm_signal}\n".encode())
-            print(
-                f"[PWM 전송] 값: {pwm_signal} (기본: {self.speed:.2f}, 경사 계수: {slope_factor}, 방향: {'전진' if direction==1 else '후진'})"
-            )
+            print(f"[PWM 전송] 값: {pwm_signal} (기본: {self.speed:.2f}, 경사 계수: {slope_factor}, 방향: {'전진' if direction==1 else '후진'})")
 
         return self.speed
