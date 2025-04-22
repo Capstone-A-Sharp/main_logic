@@ -1,4 +1,4 @@
-SERIAL_PORT_NANO = "COM11"  # 나노 보드 연결 포트
+SERIAL_PORT_NANO = "/dev/cu.usbmodem1401"  # 나노 보드 연결 포트
 BAUD_RATE = 115200  # 시리얼 통신 속도
 NUM_ROWS = 16  # 압력 센서 행 수
 NUM_COLS = 16  # 압력 센서 열 수
