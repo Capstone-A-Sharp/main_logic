@@ -1,58 +1,69 @@
 from serial_handler import connect_arduino
-# from control_logic import SpeedController
-# from calibration import Calibrator
+from control_logic import SpeedController
 from visualizer import start_visualization, update_image
 from serial_dispatcher import parse_serial_line
+import time
 
 # 시리얼 포트 초기화
 ser = connect_arduino()
 
-# controller = SpeedController()
-# calibrator = Calibrator()
+controller = SpeedController()
 
 # 센서 상태 정보 저장용 context
 context = {
-    "sensor_1": None,
-    "sensor_2": None,
-    "reading_1": False,
-    "reading_2": False,
-    "row_1": 0,
-    "row_2": 0,
-    "matrix_1": None,
-    "matrix_2": None,
-    "calib_mode": 0,
-    "direction": 1,
-    "slope_factor": 1.0,
-    "calib_done": False
 }
 
-amplified_sensors = {1: None, 2: None}
 
 def update_wrapper(*args):
-    global amplified_sensors
 
-    buffer = ""  # JSON 덩어리 저장용 버퍼
+    fig, ax, cax = start_visualization(context)
+
+    buffer = ""
 
     while True:
+        # now = time.time()
+
+        # 시리얼 데이터 읽기
         if ser.in_waiting:
             line = ser.readline().decode(errors='ignore').strip()
             if not line:
                 continue
 
             if line == "END":
-                # END를 만나면 그제서야 파싱 시도
                 if buffer:
                     try:
                         result = parse_serial_line(buffer, context)
+                        update_image(fig, ax, cax, context)
+
                         if result:
+                            # 디버깅
                             print("[Sensor 1 결과] ----------------")
-                            print(result)
+                            print(f"Pitch 값: {context.get('pitch')}")
+
+                            print("FSR 매트릭스 값:")
+                            for idx, row in enumerate(context.get('fsr_matrix', [])):
+                                print(f"Row {idx}: {row}")
+
+                            # 메인 로직 
+                            if(context.get('switch')==1){ # 캘리브레이션 진행
+                                controller.
+                            }else{ # 메인 로직 진행
+                                
+                            }
+                            
+                            fsr_matrix = context.get('fsr_matrix')
+                            row_sum = controller.calculate_row_sum(fsr_matrix)
+
+                            # 디버깅
+                            print("[Row 별 평균 압력]")
+                            for idx, sum in enumerate(row_sum):
+                                print(f"Row {idx} 압력합: {sum:.2f}")
+
                     except Exception as e:
                         print("[Error] JSON 파싱 중 문제 발생:", e)
                     finally:
-                        buffer = ""  # 실패하든 성공하든 버퍼는 비워줘야 함
+                        buffer = ""
             else:
-                # END를 만나기 전까지는 절대 파싱하지 말고 계속 이어붙이기만!
                 buffer += line
 
 
