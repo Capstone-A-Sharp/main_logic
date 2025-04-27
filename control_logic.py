@@ -8,7 +8,7 @@ class SpeedController:
             raise ValueError("입력 매트릭스는 16x32 형태여야 합니다.")
 
         row_sum = []
-        for idx, row in enumerate(matrix):
+        for row in enumerate(matrix):
             row_sum.append(sum(row))
 
         return row_sum
