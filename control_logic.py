@@ -75,7 +75,7 @@ class SpeedController:
         
     # pitch 기반으로 오르막/내리막 감지
     def calculate_slope(self, context):
-        pitch = context.get("pitch", 0.0)
+        pitch = context.get("pitch")
         slope_status = "flat"
 
         if pitch > 5:
@@ -96,10 +96,9 @@ class SpeedController:
         elif slope_status == "downhill":
             pwm *= 0.85  # 내리막이면 더 많이 줄이기
         else:
-            pass  # 평지면 변동 없음
+            pass
 
-        # 최소 PWM 10 이상으로 제한
-        pwm = max(pwm, 10)
+        pwm = max(pwm, 20)
 
         context["pwm"] = pwm
         print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")

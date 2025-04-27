@@ -1,4 +1,4 @@
-from serial_handler import connect_arduino
+from serial_handler import connect_arduino, send_pwm_to_arduino
 from control_logic import SpeedController
 from visualizer import start_visualization, update_image
 from serial_dispatcher import parse_serial_line
@@ -79,7 +79,8 @@ def update_wrapper(*args):
                         # 오르막, 내리막일 경우 pwm 갱신
                         controller.adjust_pwm_by_slope(context)
 
-                        # TODO: 시리얼로 pwm 값 최종 전송
+                        # 시리얼로 pwm 값 최종 전송
+                        send_pwm_to_arduino(ser, context)
                         
                     except Exception as e:
                         print("[Error] JSON 파싱 중 문제 발생:", e)
