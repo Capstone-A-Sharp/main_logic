@@ -21,10 +21,11 @@ context = {
     # 좌우 합산 압력
     "left_sum": 0,
     "right_sum": 0,
-    "left_min": 0,
-    "right_min": 0,
-    "left_max": 987654321,
-    "right_max": 987654321,
+    "left_min": 9999,
+    "right_min": 9999,
+    "left_max": -9999,
+    "right_max": -9999,
+    "pwm": 0,
     
     # 캘리브레이션 스위치
     "calib_switch": 0
@@ -74,10 +75,10 @@ def update_wrapper(*args):
                             print(f"PWM 값: {context.get('pwm')}")
                             
                         # 오르막, 내리막 계산
-                        controller.calculate_slope(context)
+                        #controller.calculate_slope(context)
 
                         # 오르막, 내리막일 경우 pwm 갱신
-                        controller.adjust_pwm_by_slope(context)
+                        #controller.adjust_pwm_by_slope(context)
 
                         # 시리얼로 pwm 값 최종 전송
                         send_pwm_to_arduino(ser, context)

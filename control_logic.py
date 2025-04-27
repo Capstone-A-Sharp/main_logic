@@ -37,6 +37,7 @@ class SpeedController:
         fast = 4
         left_flag = 0
         right_flag = 0
+        max_speed =35
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -45,7 +46,10 @@ class SpeedController:
         left_max = context.get('left_max')
         right_max = context.get('right_max')
         pwm = context.get('pwm')
-    
+
+        if left_max==-9999 or right_max==-9999 or left_min==9999 or right_min==9999:
+            pwm=0
+            return
 
         # 왼쪽 플래그 계산
         if left_sum < (left_min + (left_max - left_min) * 0.3):
@@ -63,42 +67,54 @@ class SpeedController:
         else:
             right_flag = fast
             
-        if (left_sum >=left_min and left_sum < left_min*1.1) and (right_sum >=right_min and right_sum < right_min*1.1):
+        if (left_sum <= left_min*1.06) and (right_sum <= right_min*1.06):
             pwm=0
         
         if left_flag+right_flag==0 or left_flag+right_flag==1:
-            pwm = pwm*0.9
+            if pwm<=12:
+                pwm=0
+            else:
+                pwm = pwm*0.9
         elif left_flag+right_flag>3:
-            pwm = pwm*1.1
+            if pwm==0:
+                pwm=20
+            else:
+                if pwm>=max_speed:
+                    pwm=max_speed
+                else:
+                    pwm = pwm*1.1
         
         context["pwm"] = pwm
+        print("left flag : ", left_flag)
+        print("right_flag : ", right_flag)
+        print("sum : ",left_flag+right_flag)
         
     # pitch 기반으로 오르막/내리막 감지
-    def calculate_slope(self, context):
-        pitch = context.get("pitch")
-        slope_status = "flat"
+    # def calculate_slope(self, context):
+    #     pitch = context.get("pitch")
+    #     slope_status = "flat"
 
-        if pitch > 5:
-            slope_status = "uphill"
-        elif pitch < -5:
-            slope_status = "downhill"
+    #     if pitch > 5:
+    #         slope_status = "uphill"
+    #     elif pitch < -5:
+    #         slope_status = "downhill"
 
-        context["slope_status"] = slope_status
-        print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
+    #     context["slope_status"] = slope_status
+    #     print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
 
     # 오르막/내리막에 따른 PWM 보정
-    def adjust_pwm_by_slope(self, context):
-        pwm = context.get("pwm", 20)
-        slope_status = context.get("slope_status", "flat")
+    # def adjust_pwm_by_slope(self, context):
+    #     pwm = context.get("pwm", 20)
+    #     slope_status = context.get("slope_status", "flat")
 
-        if slope_status == "uphill":
-            pwm *= 0.9  # 오르막이면 속도 살짝 줄이기
-        elif slope_status == "downhill":
-            pwm *= 0.85  # 내리막이면 더 많이 줄이기
-        else:
-            pass
+    #     if slope_status == "uphill":
+    #         pwm *= 0.9  # 오르막이면 속도 살짝 줄이기
+    #     elif slope_status == "downhill":
+    #         pwm *= 0.85  # 내리막이면 더 많이 줄이기
+    #     else:
+    #         pass
 
-        pwm = max(pwm, 20)
+    #     pwm = max(pwm, 20)
 
-        context["pwm"] = pwm
-        print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
+    #     context["pwm"] = pwm
+    #     print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
