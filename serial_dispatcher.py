@@ -1,41 +1,46 @@
-# 시리얼 통신으로 들어오는 다양한 센서 데이터를 식별하고 분기 처리하는 모듈입니다.
-import numpy as np
-from pressure_reader import process_pressure_sensor
-
+import json
 
 def parse_serial_line(line, context):
-    if line.startswith("PRESSURE1") or line.startswith("PRESSURE2"):
-        context["sensor"] = 1 if "1" in line else 2
-        context["row"] = 0
-        context["matrix"] = np.zeros((16, 16))
-        context["reading"] = True
+    """
+    시리얼로 수신한 JSON 문자열을 파싱하고 context를 업데이트한다.
 
-    elif line.startswith("SWITCH_CALIB"):
-        context["calib_mode"] = int(line.split(":")[1])
-        print(f"[보정 스위치] 상태: {context['calib_mode']}")
+    Args:
+        line (str): 시리얼로 읽은 한 줄 문자열 (JSON 형식 기대)
+        context (dict): 센서 상태를 저장하는 컨텍스트
 
-    elif line.startswith("GYRO"):
-        direction = line.split(":")[1].strip()
-        if direction == "UP":
-            context["slope_factor"] = 1.2
-        elif direction == "DOWN":
-            context["slope_factor"] = 0.8
-        else:
-            context["slope_factor"] = 1.0
-        print(f"[자이로] 경사 방향: {direction}, 속도 계수: {context['slope_factor']}")
+    Returns:
+        dict: 업데이트된 결과 데이터 (필요시)
+    """
+    try:
+        data = json.loads(line)
+    except json.JSONDecodeError:
+        print("[Error] JSON 디코딩 실패:", line)
+        return None
 
-    elif line.startswith("SWITCH_DIR"):
-        context["direction"] = int(line.split(":")[1])
-        print(f"[방향 스위치] 전진(1)/후진(0): {context['direction']}")
+    # MPU9250 데이터 처리
+    mpu_data = data.get("MPU9250")
+    if mpu_data:
+        context["sensor_1"] = mpu_data
+        context["reading_1"] = True
 
-    elif line == "END" and context.get("reading"):
-        context["reading"] = False
-        return process_pressure_sensor(context["matrix"])
+    # FSR 데이터 처리
+    fsr_data = data.get("FSR")
+    if fsr_data:
+        matrix = []
+        for row_idx in range(16):
+            row_key = f"row{row_idx}"
+            if row_key in fsr_data:
+                matrix.append(fsr_data[row_key])
+            else:
+                print(f"[Warning] FSR 데이터에 {row_key} 없음")
+                matrix.append([0] * 32)  # 비어있으면 0으로 채운 32칸 row
 
-    elif context.get("reading"):
-        values = line.split(",")
-        if len(values) == 16:
-            context["matrix"][context["row"]] = list(map(int, values))
-            context["row"] += 1
+        context["sensor_2"] = fsr_data
+        context["matrix_2"] = matrix
+        context["reading_2"] = True
+        context["row_2"] = len(matrix)
 
-    return None
+    return {
+        "mpu": mpu_data,
+        "fsr": fsr_data
+    }
