@@ -14,3 +14,9 @@ class SpeedController:
             row_sum.append(sum(row))
 
         return row_sum
+    
+    # 속도 제어 용
+    def caculate_pwm(self,context):
+        
+        pass
+        

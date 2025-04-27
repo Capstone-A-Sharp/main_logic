@@ -2,17 +2,26 @@ from serial_handler import connect_arduino
 from control_logic import SpeedController
 from visualizer import start_visualization, update_image
 from serial_dispatcher import parse_serial_line
+from calibration import Calibration
 import time
 
 # 시리얼 포트 초기화
 ser = connect_arduino()
 
 controller = SpeedController()
+calibration = Calibration()
 
 # 센서 상태 정보 저장용 context
 context = {
+    "pitch": 0.0,
+    "fsr_matrix_left": [[0] * 16 for _ in range(16)],  
+    "fsr_matrix_right": [[0] * 16 for _ in range(16)],  
+    "calib_switch": 0, 
+    "left_min" : 0,
+    "right_min" : 0,
+    "left_max" : 999,
+    "right_max" : 999
 }
-
 
 def update_wrapper(*args):
 
@@ -44,12 +53,12 @@ def update_wrapper(*args):
                             for idx, row in enumerate(context.get('fsr_matrix', [])):
                                 print(f"Row {idx}: {row}")
 
-                            # 메인 로직 
-                            if(context.get('switch')==1){ # 캘리브레이션 진행
-                                controller.
-                            }else{ # 메인 로직 진행
-                                
-                            }
+                            # calib_switch ON일 경우 : 캘리브레이션 진행
+                            if context.get('calib_switch')==1 :
+                                calibration.caculate_minmax(context)
+                            # 메인 로직 진행
+                            else :
+                                controller.caculate_pwm(context)
                             
                             fsr_matrix = context.get('fsr_matrix')
                             row_sum = controller.calculate_row_sum(fsr_matrix)
