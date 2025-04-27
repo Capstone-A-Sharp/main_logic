@@ -89,7 +89,7 @@ class SpeedController:
         print("right_flag : ", right_flag)
         print("sum : ",left_flag+right_flag)
         
-    # pitch 기반으로 오르막/내리막 감지
+    # # pitch 기반으로 오르막/내리막 감지
     # def calculate_slope(self, context):
     #     pitch = context.get("pitch")
     #     slope_status = "flat"
@@ -102,7 +102,7 @@ class SpeedController:
     #     context["slope_status"] = slope_status
     #     print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
 
-    # 오르막/내리막에 따른 PWM 보정
+    # # 오르막/내리막에 따른 PWM 보정
     # def adjust_pwm_by_slope(self, context):
     #     pwm = context.get("pwm", 20)
     #     slope_status = context.get("slope_status", "flat")
