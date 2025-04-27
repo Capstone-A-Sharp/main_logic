@@ -23,8 +23,8 @@ context = {
     "right_sum": 0,
     "left_min": 0,
     "right_min": 0,
-    "left_max": 999,
-    "right_max": 999,
+    "left_max": 987654321,
+    "right_max": 987654321,
     
     # 캘리브레이션 스위치
     "calib_switch": 0
@@ -63,7 +63,10 @@ def update_wrapper(*args):
 
                         # calib_switch ON일 경우 : 캘리브레이션 진행
                         if context.get('calib_switch')==1 :
+                            print("calibration 시작")
                             calibration.calculate_minmax(context)
+                            print(f"Left Min: {context.get('left_min')}, Left Max 합: {context.get('left_max')}")
+                            print(f"Right Min: {context.get('right_min')}, Right Max 합: {context.get('right_max')}")
                             
                         # 메인 로직 진행
                         else :
