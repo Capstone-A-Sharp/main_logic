@@ -16,6 +16,8 @@ context = {
     "pitch": 0.0,
     "fsr_matrix_left": [[0] * 16 for _ in range(16)],  
     "fsr_matrix_right": [[0] * 16 for _ in range(16)],  
+    "left_sum": 0,
+    "right_sum": 0,
     "calib_switch": 0, 
     "left_min" : 0,
     "right_min" : 0,
@@ -53,20 +55,15 @@ def update_wrapper(*args):
                             for idx, row in enumerate(context.get('fsr_matrix', [])):
                                 print(f"Row {idx}: {row}")
 
+                            controller.calculate_sum(context)
+                            print(f"[PWM 계산] Left 합: {context.get('left_sum')}, Right 합: {context.get('right_sum')}")
+
                             # calib_switch ON일 경우 : 캘리브레이션 진행
                             if context.get('calib_switch')==1 :
-                                calibration.caculate_minmax(context)
+                                calibration.calculate_minmax(context)
                             # 메인 로직 진행
                             else :
-                                controller.caculate_pwm(context)
-                            
-                            fsr_matrix = context.get('fsr_matrix')
-                            row_sum = controller.calculate_row_sum(fsr_matrix)
-
-                            # 디버깅
-                            print("[Row 별 평균 압력]")
-                            for idx, sum in enumerate(row_sum):
-                                print(f"Row {idx} 압력합: {sum:.2f}")
+                                controller.calculate_pwm(context)
 
                     except Exception as e:
                         print("[Error] JSON 파싱 중 문제 발생:", e)
