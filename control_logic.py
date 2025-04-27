@@ -68,8 +68,6 @@ class SpeedController:
         
         if left_flag+right_flag==0 or left_flag+right_flag==1:
             pwm = pwm*0.9
-        elif left_flag+right_flag==2:
-            pwm = pwm
         elif left_flag+right_flag>3:
             pwm = pwm*1.1
         

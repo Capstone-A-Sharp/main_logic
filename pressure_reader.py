@@ -1,6 +1,4 @@
 import numpy as np
-from config import NUM_ROWS, NUM_COLS
-
 
 # 압력 센서 데이터 하이패스필터 적용
 def apply_hpf(data, threshold=20):

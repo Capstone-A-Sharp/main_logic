@@ -2,7 +2,7 @@ class Calibration:
     def __init__(self):
         pass
     
-    def caculate_minmax(self,context):
+    def calculate_minmax(self,context):
         # 최솟값 갱신
         if context.get('left_min')>context.get('left_sum'):
             context['left_min']=context.get('left_sum')
