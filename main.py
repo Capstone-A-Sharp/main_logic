@@ -59,7 +59,7 @@ def update_wrapper(*args):
 
                         # 압력센서 left, right 합 계산
                         controller.calculate_sum(context)
-                        print(f"[PWM 계산] Left 합: {context.get('left_sum')}, Right 합: {context.get('right_sum')}")
+                        print(f"Left 합: {context.get('left_sum')}, Right 합: {context.get('right_sum')}")
 
                         # calib_switch ON일 경우 : 캘리브레이션 진행
                         if context.get('calib_switch')==1 :
@@ -68,6 +68,7 @@ def update_wrapper(*args):
                         # 메인 로직 진행
                         else :
                             controller.calculate_pwm(context)
+                            print(f"PWM 값: {context.get('pwm')}")
 
                     except Exception as e:
                         print("[Error] JSON 파싱 중 문제 발생:", e)
