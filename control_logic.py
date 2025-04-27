@@ -72,3 +72,34 @@ class SpeedController:
             pwm = pwm*1.1
         
         context["pwm"] = pwm
+        
+    # pitch 기반으로 오르막/내리막 감지
+    def calculate_slope(self, context):
+        pitch = context.get("pitch", 0.0)
+        slope_status = "flat"
+
+        if pitch > 5:
+            slope_status = "uphill"
+        elif pitch < -5:
+            slope_status = "downhill"
+
+        context["slope_status"] = slope_status
+        print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
+
+    # 오르막/내리막에 따른 PWM 보정
+    def adjust_pwm_by_slope(self, context):
+        pwm = context.get("pwm", 20)
+        slope_status = context.get("slope_status", "flat")
+
+        if slope_status == "uphill":
+            pwm *= 0.9  # 오르막이면 속도 살짝 줄이기
+        elif slope_status == "downhill":
+            pwm *= 0.85  # 내리막이면 더 많이 줄이기
+        else:
+            pass  # 평지면 변동 없음
+
+        # 최소 PWM 10 이상으로 제한
+        pwm = max(pwm, 10)
+
+        context["pwm"] = pwm
+        print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
