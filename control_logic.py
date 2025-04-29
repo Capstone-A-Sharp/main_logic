@@ -31,7 +31,12 @@ class SpeedController:
 
     # 속도 제어
     def calculate_pwm(self, context):
-            
+        # 스위치 껐다가 켰을 때 
+        context["left_min"] = 9999
+        context["right_min"] = 9999
+        context["left_max"] = -9999
+        context["right_max"] = -9999
+   
         slow = 0
         maintain = 1
         fast = 4
@@ -104,7 +109,7 @@ class SpeedController:
 
     # # 오르막/내리막에 따른 PWM 보정
     # def adjust_pwm_by_slope(self, context):
-    #     pwm = context.get("pwm", 20)
+    #     pwm = context.get("pwm")
     #     slope_status = context.get("slope_status", "flat")
 
     #     if slope_status == "uphill":
@@ -113,8 +118,6 @@ class SpeedController:
     #         pwm *= 0.85  # 내리막이면 더 많이 줄이기
     #     else:
     #         pass
-
-    #     pwm = max(pwm, 20)
 
     #     context["pwm"] = pwm
     #     print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
