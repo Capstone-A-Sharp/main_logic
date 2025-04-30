@@ -31,18 +31,13 @@ class SpeedController:
 
     # 속도 제어
     def calculate_pwm(self, context):
-        # 스위치 껐다가 켰을 때 
-        context["left_min"] = 9999
-        context["right_min"] = 9999
-        context["left_max"] = -9999
-        context["right_max"] = -9999
    
         slow = 0
         maintain = 1
         fast = 4
         left_flag = 0
         right_flag = 0
-        max_speed =35
+        max_speed = 50
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -89,10 +84,13 @@ class SpeedController:
                 else:
                     pwm = pwm*1.1
         
-        context["pwm"] = pwm
-        print("left flag : ", left_flag)
-        print("right_flag : ", right_flag)
-        print("sum : ",left_flag+right_flag)
+        if pwm<30 :
+            context["pwm"] = pwm
+        else: 
+            context["pwm"] = pwm
+        # print("left flag : ", left_flag)
+        # print("right_flag : ", right_flag)
+        # print("sum : ",left_flag+right_flag)
         
     # # pitch 기반으로 오르막/내리막 감지
     # def calculate_slope(self, context):

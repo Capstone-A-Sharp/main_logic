@@ -6,6 +6,13 @@ class Calibration:
         self.threshold_min= 10  # 10 이내로 값이 변하면 안정됐다고 판단
         self.threshold_max= 30  # 30 이내로 값이 변하면 안정됐다고 판단   
 
+    def reset_minmax(self,context):
+        # 스위치 껐다가 켰을 때 
+        context["left_min"] = 9999
+        context["right_min"] = 9999
+        context["left_max"] = -9999
+        context["right_max"] = -9999
+    
     def calculate_minmax(self, context):
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
