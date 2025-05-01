@@ -23,3 +23,9 @@ def parse_serial_line(line, context):
     
     # calib_switch 데이터 파싱
     context["calib_switch"] = data.get("calib_switch", 0)
+    
+    # 🆕 Wheel_Speed 데이터 파싱
+    wheel_data = data.get("Wheel_Speed", {})
+    context["speedL"] = wheel_data.get("L", 0)
+    context["speedR"] = wheel_data.get("R", 0)
+    #print(f"[수신] Wheel_Speed - L: {context['speedL']}, R: {context['speedR']}")

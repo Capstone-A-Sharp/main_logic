@@ -26,6 +26,9 @@ context = {
     "left_max": -9999,
     "right_max": -9999,
     "pwm": 0,
+    "speedL": 0, 
+    "speedR": 0,  
+    "calib_flag": 0,
     
     # 캘리브레이션 스위치
     "calib_switch": 0
@@ -53,26 +56,30 @@ def update_wrapper(*args):
                         update_image(fig, ax, cax, context)
 
                         # 디버깅
-                        print(f"Pitch 값: {context.get('pitch')}")
-                        print("FSR 매트릭스 값:")
-                        for idx, row in enumerate(context.get('fsr_matrix', [])):
-                            print(f"Row {idx}: {row}")
+                        #print(f"Pitch 값: {context.get('pitch')}")
+                        #print("FSR 매트릭스 값:")
+                        # for idx, row in enumerate(context.get('fsr_matrix', [])):
+                        #     print(f"Row {idx}: {row}")
 
                         # 압력센서 left, right 합 계산
                         controller.calculate_sum(context)
                         print(f"Left 합: {context.get('left_sum')}, Right 합: {context.get('right_sum')}")
-
+                        print(f"Left [ Min: {context.get('left_min')}, Max : {context.get('left_max')} ] ",end=", ")
+                        print(f"Right [ Min: {context.get('right_min')}, Max : {context.get('right_max')} ] ")
+                            
                         # calib_switch ON일 경우 : 캘리브레이션 진행
                         if context.get('calib_switch')==1 :
-                            print("calibration 시작")
+                            if context["calib_flag"]==0:
+                                calibration.reset_minmax(context)
+                                context["calib_flag"]=1
+                            print("==========calibration 시작==========")
                             calibration.calculate_minmax(context)
-                            print(f"Left Min: {context.get('left_min')}, Left Max 합: {context.get('left_max')}")
-                            print(f"Right Min: {context.get('right_min')}, Right Max 합: {context.get('right_max')}")
                             
                         # 메인 로직 진행
                         else :
+                            context["calib_flag"]=0
                             controller.calculate_pwm(context)
-                            print(f"PWM 값: {context.get('pwm')}")
+                            print(f"PWM Value: {context.get('pwm')}")
                             
                         # 오르막, 내리막 계산
                         #controller.calculate_slope(context)
