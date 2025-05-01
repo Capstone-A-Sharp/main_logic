@@ -4,13 +4,6 @@ class Calibration:
         self.right_history = []
         self.history_length = 10  # 최근 10번 값 기억
 
-    def reset_minmax(self, context):
-        # 스위치 껐다가 켰을 때
-        context["left_min"] = 9999
-        context["right_min"] = 9999
-        context["left_max"] = -9999
-        context["right_max"] = -9999
-
     def reset_minmax(self,context):
         # 스위치 껐다가 켰을 때 
         context["left_min"] = 9999

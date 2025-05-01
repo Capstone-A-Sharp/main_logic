@@ -30,22 +30,13 @@ class SpeedController:
         context["right_sum"] = right_sum
 
     # 속도 제어
-<<<<<<< HEAD
-    def calculate_pwm(self, context):   
-=======
     def calculate_pwm(self, context):
-   
->>>>>>> 965daaa15ffff94adc103cef9854a4f60548d9e5
         slow = 0
         maintain = 1
         fast = 3
         left_flag = 0
         right_flag = 0
-<<<<<<< HEAD
         max_speed =50
-=======
-        max_speed = 50
->>>>>>> 965daaa15ffff94adc103cef9854a4f60548d9e5
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -60,7 +51,7 @@ class SpeedController:
             return
 
         # 왼쪽 플래그 계산
-        if left_sum < (left_min + (left_max - left_min) * 0.35):
+        if left_sum < (left_min + (left_max - left_min) * 0.30):
             left_flag = slow
         elif left_sum < (left_min + (left_max - left_min) * 0.65):
             left_flag = maintain
@@ -68,7 +59,7 @@ class SpeedController:
             left_flag = fast
 
         # 오른쪽 플래그 계산
-        if right_sum < (right_min + (right_max - right_min) * 0.35):
+        if right_sum < (right_min + (right_max - right_min) * 0.30):
             right_flag = slow
         elif right_sum < (right_min + (right_max - right_min) * 0.65):
             right_flag = maintain
