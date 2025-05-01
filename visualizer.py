@@ -1,10 +1,8 @@
-# visualizer.py
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import gaussian_filter
 
-# 💡 블러 강도, 컬러맵 최대값 설정
+# 블러 강도, 컬러맵 최대값 설정
 BLUR_SIGMA = 0.3
 VMAX = 20
 

@@ -30,13 +30,22 @@ class SpeedController:
         context["right_sum"] = right_sum
 
     # 속도 제어
+<<<<<<< HEAD
     def calculate_pwm(self, context):   
+=======
+    def calculate_pwm(self, context):
+   
+>>>>>>> 965daaa15ffff94adc103cef9854a4f60548d9e5
         slow = 0
         maintain = 1
         fast = 3
         left_flag = 0
         right_flag = 0
+<<<<<<< HEAD
         max_speed =50
+=======
+        max_speed = 50
+>>>>>>> 965daaa15ffff94adc103cef9854a4f60548d9e5
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -81,14 +90,14 @@ class SpeedController:
                     pwm=max_speed
                 else:
                     pwm = pwm*1.1
-        
+
         context["pwm"] = pwm
         print("left flag : ", left_flag)
         print("right_flag : ", right_flag)
         print("sum : ",left_flag+right_flag)
         print((left_sum-left_min)/(left_max - left_min)*100)
         print((right_sum-right_min)/(right_max - right_min)*100)
-        
+
     # # pitch 기반으로 오르막/내리막 감지
     # def calculate_slope(self, context):
     #     pitch = context.get("pitch")
