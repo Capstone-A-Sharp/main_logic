@@ -81,14 +81,14 @@ def update_wrapper(*args):
                             controller.calculate_pwm(context)
                             print(f"PWM Value: {context.get('pwm')}")
                             
-                        # 오르막, 내리막 계산
-                        #controller.calculate_slope(context)
+                            # 오르막, 내리막 계산
+                            #controller.calculate_slope(context)
 
-                        # 오르막, 내리막일 경우 pwm 갱신
-                        #controller.adjust_pwm_by_slope(context)
+                            # 오르막, 내리막일 경우 pwm 갱신
+                            #controller.adjust_pwm_by_slope(context)
 
-                        # 시리얼로 pwm 값 최종 전송
-                        send_pwm_to_arduino(ser, context)
+                            # 시리얼로 pwm 값 최종 전송
+                            send_pwm_to_arduino(ser, context)
                         
                     except Exception as e:
                         print("[Error] JSON 파싱 중 문제 발생:", e)
