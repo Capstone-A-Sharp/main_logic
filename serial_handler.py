@@ -8,7 +8,7 @@ def connect_arduino():
     return ser
 
 def send_pwm_to_arduino(ser, context):
-    pwm_value = int(context.get("pwm", 20))  
+    pwm_value = int(context.get("pwm"))  
     
     message = f"{pwm_value}\n"  # 문자열 + 개행문자
     try:

@@ -36,7 +36,7 @@ class SpeedController:
         fast = 3
         left_flag = 0
         right_flag = 0
-        max_speed =50
+        max_speed = 30
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -47,7 +47,7 @@ class SpeedController:
         pwm = context.get('pwm')
 
         if left_max==-9999 or right_max==-9999 or left_min==9999 or right_min==9999:
-            pwm=0 
+            context["pwm"] = 0
             return
 
         # 왼쪽 플래그 계산
@@ -68,14 +68,15 @@ class SpeedController:
         
         # 메인 로직
         if (left_sum <= (left_min + (left_max - left_min) * 0.1)) and (right_sum<=right_min + (right_max - right_min) * 0.1):
-            pwm=0
+            context["pwm"] = 0
+            return 
         
         if left_flag+right_flag==0:
             pwm = pwm*0.8
                 
         elif left_flag+right_flag>=3:
             if pwm==0:
-                pwm=25
+                pwm=20
             else:
                 if pwm>=max_speed:
                     pwm=max_speed

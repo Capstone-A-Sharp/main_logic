@@ -35,7 +35,7 @@ context = {
 }
 
 def update_wrapper(*args):
-    fig, ax, cax = start_visualization(context)
+    # fig, ax, cax = start_visualization(context)
 
     buffer = ""
 
@@ -53,7 +53,7 @@ def update_wrapper(*args):
                         parse_serial_line(buffer, context)
                         
                         # 실시간 압력센서값 그래프로 나타내기
-                        update_image(fig, ax, cax, context)
+                        # update_image(fig, ax, cax, context)
 
                         # 디버깅
                         #print(f"Pitch 값: {context.get('pitch')}")
