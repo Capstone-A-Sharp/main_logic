@@ -45,6 +45,29 @@ class SpeedController:
         left_max = context.get('left_max')
         right_max = context.get('right_max')
         pwm = context.get('pwm')
+        
+        pitch = context.get("pitch")
+        pitch_flag=0
+        flat = 0
+        uphill=1
+        downhill=-1
+        slope_status = "flat"
+
+        if pitch > 5: ################################# 수정하기
+            slope_status = "uphill"
+        elif pitch < -5: ############################## 수정하기기
+            slope_status = "downhill"
+        else:
+            slope_status = "flat"
+
+
+        if slope_status == "uphill":
+            pitch_flag=uphill
+        elif slope_status == "downhill":
+            pitch_flag=downhill  # 내리막이면 더 많이 줄이기
+        else:
+            pitch_flag=flat
+
 
         if left_max==-9999 or right_max==-9999 or left_min==9999 or right_min==9999:
             context["pwm"] = 0
@@ -71,17 +94,36 @@ class SpeedController:
             context["pwm"] = 0
             return 
         
+        # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
         if left_flag+right_flag==0:
-            pwm = pwm*0.8
-                
+            if pitch_flag==flat:
+                pwm = pwm*0.8
+            elif pitch_flag==uphill:
+                pwm = pwm*0.8*0.9
+            elif pitch_flag==downhill:
+                pwm = pwm*0.8*0.85
+ 
+        # 증속 부분 (uphill과 downhill은 증속이 더 늦게 됨)
         elif left_flag+right_flag>=3:
             if pwm==0:
                 pwm=20
             else:
-                if pwm>=max_speed:
-                    pwm=max_speed
-                else:
-                    pwm = pwm*1.1
+                if pitch_flag==flat:
+                    if pwm>=max_speed:
+                        pwm=max_speed
+                    else:
+                        pwm = pwm*1.1
+                elif pitch_flag==uphill:
+                    if pwm>=max_speed*0.9:
+                        pwm=max_speed*0.9
+                    else:
+                        pwm = pwm*1.08
+                elif pitch_flag==downhill:
+                    if pwm>=max_speed*0.85:
+                        pwm=max_speed*0.85
+                    else:
+                        pwm = pwm*1.06
+                    
 
         context["pwm"] = pwm
         print("left flag : ", left_flag)
@@ -89,34 +131,9 @@ class SpeedController:
         print("sum : ",left_flag+right_flag)
         print((left_sum-left_min)/(left_max - left_min)*100)
         print((right_sum-right_min)/(right_max - right_min)*100)
-
-    # # pitch 기반으로 오르막/내리막 감지
-    # def calculate_slope(self, context):
-    #     pitch = context.get("pitch")
-    #     slope_status = "flat"
-
-    #     if pitch > 5:
-    #         slope_status = "uphill"
-    #     elif pitch < -5:
-    #         slope_status = "downhill"
-
-    #     context["slope_status"] = slope_status
-    #     print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
-
-    # # 오르막/내리막에 따른 PWM 보정
-    # def adjust_pwm_by_slope(self, context):
-    #     pwm = context.get("pwm")
-    #     slope_status = context.get("slope_status", "flat")
-
-    #     if slope_status == "uphill":
-    #         pwm *= 0.9  # 오르막이면 속도 살짝 줄이기
-    #     elif slope_status == "downhill":
-    #         pwm *= 0.85  # 내리막이면 더 많이 줄이기
-    #     else:
-    #         pass
-
-    #     context["pwm"] = pwm
-    #     print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
+        
+        print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
+        print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
 
 
 # # 속도 유지 없을 경우 로직

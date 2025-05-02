@@ -35,7 +35,7 @@ context = {
 }
 
 def update_wrapper(*args):
-    # fig, ax, cax = start_visualization(context)
+    fig, ax, cax = start_visualization(context)
 
     buffer = ""
 
@@ -53,11 +53,11 @@ def update_wrapper(*args):
                         parse_serial_line(buffer, context)
                         
                         # 실시간 압력센서값 그래프로 나타내기
-                        # update_image(fig, ax, cax, context)
+                        update_image(fig, ax, cax, context)
 
                         # 디버깅
-                        #print(f"Pitch 값: {context.get('pitch')}")
-                        #print("FSR 매트릭스 값:")
+                        print(f"Pitch 값: {context.get('pitch')}")
+                        print("FSR 매트릭스 값:")
                         # for idx, row in enumerate(context.get('fsr_matrix', [])):
                         #     print(f"Row {idx}: {row}")
 
@@ -81,12 +81,6 @@ def update_wrapper(*args):
                             controller.calculate_pwm(context)
                             print(f"PWM Value: {context.get('pwm')}")
                             
-                            # 오르막, 내리막 계산
-                            #controller.calculate_slope(context)
-
-                            # 오르막, 내리막일 경우 pwm 갱신
-                            #controller.adjust_pwm_by_slope(context)
-
                             # 시리얼로 pwm 값 최종 전송
                             send_pwm_to_arduino(ser, context)
                         
