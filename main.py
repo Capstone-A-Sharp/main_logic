@@ -57,12 +57,12 @@ def update_wrapper(*args):
 
                         # 디버깅
                         print(f"Pitch 값: {context.get('pitch')}")
-                        print("FSR 매트릭스 값:")
+                        #print("FSR 매트릭스 값:")
                         # for idx, row in enumerate(context.get('fsr_matrix', [])):
                         #     print(f"Row {idx}: {row}")
 
                         # 압력센서 left, right 합 계산
-                        controller.calculate_sum(context)
+                        #controller.calculate_sum(context)
                         print(f"Left 합: {context.get('left_sum')}, Right 합: {context.get('right_sum')}")
                         print(f"Left [ Min: {context.get('left_min')}, Max : {context.get('left_max')} ] ",end=", ")
                         print(f"Right [ Min: {context.get('right_min')}, Max : {context.get('right_max')} ] ")

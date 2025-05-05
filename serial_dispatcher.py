@@ -13,13 +13,15 @@ def parse_serial_line(line, context):
 
     # FSR 데이터 파싱
     fsr_data = data.get("FSR", {})
-    matrix = []
-    for row_idx in range(16):
-        row_key = f"row{row_idx}"
-        row_data = fsr_data.get(row_key, [0]*32)
-        matrix.append(row_data)
+    # matrix = []
+    # for row_idx in range(16):
+    #     row_key = f"row{row_idx}"
+    #     row_data = fsr_data.get(row_key, [0]*32)
+    #     matrix.append(row_data)
 
-    context["fsr_matrix"] = matrix 
+    # context["fsr_matrix"] = matrix 
+    context["left_sum"]=fsr_data.get("left_sum")
+    context["right_sum"]=fsr_data.get("right_sum")
     
     # calib_switch 데이터 파싱
     context["calib_switch"] = data.get("calib_switch", 0)

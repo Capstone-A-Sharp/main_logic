@@ -36,7 +36,7 @@ class SpeedController:
         fast = 3
         left_flag = 0
         right_flag = 0
-        max_speed = 30
+        max_speed = 60
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -53,9 +53,9 @@ class SpeedController:
         downhill=-1
         slope_status = "flat"
 
-        if pitch > 5: ################################# 수정하기
+        if pitch > 35: ################################# 수정하기
             slope_status = "uphill"
-        elif pitch < -5: ############################## 수정하기기
+        elif pitch < -35: ############################## 수정하기기
             slope_status = "downhill"
         else:
             slope_status = "flat"
@@ -97,11 +97,11 @@ class SpeedController:
         # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
         if left_flag+right_flag==0:
             if pitch_flag==flat:
-                pwm = pwm*0.8
+                pwm = pwm*0.9
             elif pitch_flag==uphill:
-                pwm = pwm*0.8*0.9
+                pwm = pwm*0.9*0.9
             elif pitch_flag==downhill:
-                pwm = pwm*0.8*0.85
+                pwm = pwm*0.9*0.85
  
         # 증속 부분 (uphill과 downhill은 증속이 더 늦게 됨)
         elif left_flag+right_flag>=3:
