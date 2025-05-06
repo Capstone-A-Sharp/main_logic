@@ -36,7 +36,7 @@ class SpeedController:
         fast = 3
         left_flag = 0
         right_flag = 0
-        max_speed = 60
+        max_speed = 40
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -96,6 +96,8 @@ class SpeedController:
         
         # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
         if left_flag+right_flag==0:
+            if pwm==18:
+                pwm=pwm # 최저 속도를 18cm/s로 설정정
             if pitch_flag==flat:
                 pwm = pwm*0.9
             elif pitch_flag==uphill:
