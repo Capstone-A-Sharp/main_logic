@@ -43,6 +43,7 @@ def update_wrapper(*args):
         # 시리얼 데이터 읽기
         if ser.in_waiting:
             line = ser.readline().decode(errors='ignore').strip()
+            print(line)
             if not line:
                 continue
 
