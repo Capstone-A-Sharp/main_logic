@@ -96,9 +96,9 @@ class SpeedController:
         
         # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
         if left_flag+right_flag==0:
-            if pwm==18:
-                pwm=pwm # 최저 속도를 18cm/s로 설정정
-            if pitch_flag==flat:
+            if pwm<=18:
+                pwm=18 # 최저 속도를 18cm/s로 설정정
+            elif pitch_flag==flat:
                 pwm = pwm*0.9
             elif pitch_flag==uphill:
                 pwm = pwm*0.9*0.9
