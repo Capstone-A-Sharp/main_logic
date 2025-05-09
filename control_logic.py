@@ -37,6 +37,8 @@ class SpeedController:
         left_flag = 0
         right_flag = 0
         max_speed = 40
+        pitch_upcount=0 #오르막 상태를 얼마나 유지하는지 셈
+        pitch_downcount=0 # 내리막 상태를 얼마나 유지하는지 셈
         
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
@@ -53,12 +55,16 @@ class SpeedController:
         downhill=-1
         slope_status = "flat"
 
-        if pitch > 35: ################################# 수정하기
+        if pitch > 15: ################################################### 테스트 후 수정하기
             slope_status = "uphill"
-        elif pitch < -35: ############################## 수정하기기
+            pitch_upcount+=1
+        elif pitch < -15: ################################################ 테스트 후 수정하기
             slope_status = "downhill"
+            pitch_downcount+=1
         else:
             slope_status = "flat"
+            pitch_upcount=0 
+            pitch_downcount=0
 
 
         if slope_status == "uphill":
@@ -94,18 +100,26 @@ class SpeedController:
             context["pwm"] = 0
             return 
         
-        # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
+        # 감속 부분
         if left_flag+right_flag==0:
             if pwm<=18:
-                pwm=18 # 최저 속도를 18cm/s로 설정정
+                pwm=18 # 최저 속도를 18cm/s로 설정
             elif pitch_flag==flat:
                 pwm = pwm*0.9
+                
             elif pitch_flag==uphill:
-                pwm = pwm*0.9*0.9
+                if pitch_upcount>15:
+                    pwm = pwm*0.92  ############################################################################ 오르막에서는 감속이 느리게 0.92부분 테스트 후 수정
+                else:
+                    pwm = pwm*0.9  ##################################################### downcount 15보다 작을때까진 평지로 인식
+                    
             elif pitch_flag==downhill:
-                pwm = pwm*0.9*0.85
+                if pitch_downcount>15:
+                    pwm = pwm*0.85 ########################################################################## 내리막에서는 감속이 빠르게 0.85부분 테스트 후 수정
+                else:
+                    pwm = pwm*0.9  ##################################################### downcount 15보다 작을때까진 평지로 인식
  
-        # 증속 부분 (uphill과 downhill은 증속이 더 늦게 됨)
+        # 증속 부분 
         elif left_flag+right_flag>=3:
             if pwm==0:
                 pwm=20
@@ -115,16 +129,24 @@ class SpeedController:
                         pwm=max_speed
                     else:
                         pwm = pwm*1.1
+                        
                 elif pitch_flag==uphill:
-                    if pwm>=max_speed*0.9:
-                        pwm=max_speed*0.9
+                    if pitch_upcount>15: ##################  15 기준 수정
+                        if pwm>=max_speed*1.1:
+                            pwm=max_speed*1.1 ########################### uphill에서는 최고 속도 제한이 10퍼 증가
+                        else:
+                            pwm = pwm*1.12 ################################## uphill에서는 평지보다 증속이 빠름 1.12 부분 테스트 후 수정
                     else:
-                        pwm = pwm*1.08
+                        pwm = pwm*1.1      #################################### upcount 15보다 작으면 평지 취급
+                        
                 elif pitch_flag==downhill:
-                    if pwm>=max_speed*0.85:
-                        pwm=max_speed*0.85
+                    if pitch_downcount>15: ######################### 15 기준 수정
+                        if pwm>=max_speed*0.85:
+                            pwm=max_speed*0.85 ################################ downhill에서는 평지보다 최고 속도 제한이 15퍼 감소
+                        else:
+                            pwm = pwm*1.06 ##################################### downhill에서는 평지보다 증속이 느림 1.06 부분 테스트 후 수정
                     else:
-                        pwm = pwm*1.06
+                        pwm = pwm*1.1   ######################################### downcount 15보다 작으면 평지 취급
                     
 
         context["pwm"] = pwm
