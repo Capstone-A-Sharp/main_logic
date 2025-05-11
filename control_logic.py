@@ -1,43 +1,61 @@
+from typing import Tuple
+
 class SpeedController:
-    def __init__(self):
-        pass
+    def __init__(self) -> None:
+        self.pitch_history = []
+        self.SPEED = {'slow': 0, 'maintain': 1, 'fast': 3}
+        self.PITCH_STATE = {'flat': 0, 'uphill': 1, 'downhill': -1}
+        self.MAX_SPEED = 40
+        self.MIN_PWM = 18
 
-    # 평균값 계산용
-    def calculate_row_sum(self, matrix):
-        if not matrix or len(matrix) != 16 or any(len(row) != 32 for row in matrix):
-            raise ValueError("입력 매트릭스는 16x32 형태여야 합니다.")
+    # ✨ Outlier Filter 적용 (개선된 버전)
+    def filter_pitch(self, new_pitch: float, threshold: float = 3.0, window_size: int = 5) -> float:
+        # 초기 데이터가 부족한 경우 무조건 입력값 사용
+        if len(self.pitch_history) < window_size:
+            self.pitch_history.append(new_pitch)
+            return new_pitch
 
-        row_sum = []
-        for row in enumerate(matrix):
-            row_sum.append(sum(row))
+        # 윈도우 평균 계산
+        window = self.pitch_history[-window_size:]
+        avg_pitch = sum(window) / window_size
 
-        return row_sum
+        # 이상치 여부 판단
+        if abs(new_pitch - avg_pitch) > threshold:
+            filtered_pitch = avg_pitch  # 이상치 감지 → 평균값으로 대체
+        else:
+            filtered_pitch = new_pitch  # 정상값 → 그대로 사용
+
+        self.pitch_history.append(filtered_pitch)  # 필터링된 값으로 이력 갱신
+        return filtered_pitch
     
-    # 왼쪽, 오른쪽 합 계산용
-    def calculate_sum(self, context):
-        fsr_matrix = context.get("fsr_matrix")
-        if not fsr_matrix or len(fsr_matrix) != 16:
-            raise ValueError("context에 유효한 fsr_matrix가 없습니다.")
+    # 오르막/내리막 판별
+    def get_slope_status(self, pitch: float) -> Tuple[str, int]:
+        filtered_pitch = self.filter_pitch(pitch)
+        if filtered_pitch > 3:
+            slope_status = "uphill"
+            pitch_flag = self.PITCH_STATE['uphill']
+        elif filtered_pitch < -3:
+            slope_status = "downhill"
+            pitch_flag = self.PITCH_STATE['downhill']
+        else:
+            slope_status = "flat"
+            pitch_flag = self.PITCH_STATE['flat']
+        return slope_status, pitch_flag
 
-        left_sum = 0
-        right_sum = 0
+    # 속도값 flag 판단
+    def get_speed_flag(self, value: float, value_min: float, value_max: float) -> int:
+        value_range = value_max - value_min
+        ratio = (value - value_min) / value_range
+        if ratio < 0.30:
+            return self.SPEED['slow'], ratio
+        elif ratio < 0.65:
+            return self.SPEED['maintain'], ratio
+        else:
+            return self.SPEED['fast'], ratio
 
-        for row in fsr_matrix:
-            left_sum += sum(row[0:16])  
-            right_sum += sum(row[16:32]) 
-
-        context["left_sum"] = left_sum
-        context["right_sum"] = right_sum
-
-    # 속도 제어
-    def calculate_pwm(self, context):
-        slow = 0
-        maintain = 1
-        fast = 3
-        left_flag = 0
-        right_flag = 0
-        max_speed = 40
-        
+    # pwm 계산 (메인 로직)
+    def calculate_pwm(self, context: dict) -> None:
+        # 입력 값
         left_sum = context.get('left_sum')
         right_sum = context.get('right_sum')
         left_min = context.get('left_min')
@@ -45,185 +63,68 @@ class SpeedController:
         left_max = context.get('left_max')
         right_max = context.get('right_max')
         pwm = context.get('pwm')
-        
         pitch = context.get("pitch")
-        pitch_flag=0
-        flat = 0
-        uphill=1
-        downhill=-1
-        slope_status = "flat"
 
-        if pitch > 35: ################################# 수정하기
-            slope_status = "uphill"
-        elif pitch < -35: ############################## 수정하기기
-            slope_status = "downhill"
-        else:
-            slope_status = "flat"
-
-
-        if slope_status == "uphill":
-            pitch_flag=uphill
-        elif slope_status == "downhill":
-            pitch_flag=downhill  # 내리막이면 더 많이 줄이기
-        else:
-            pitch_flag=flat
-
-
-        if left_max==-9999 or right_max==-9999 or left_min==9999 or right_min==9999:
+        # 예외 처리
+        if -9999 in (left_max, right_max) or 9999 in (left_min, right_min):
             context["pwm"] = 0
             return
 
-        # 왼쪽 플래그 계산
-        if left_sum < (left_min + (left_max - left_min) * 0.30):
-            left_flag = slow
-        elif left_sum < (left_min + (left_max - left_min) * 0.65):
-            left_flag = maintain
-        else:
-            left_flag = fast
+        # ✨ Pitch 값에 따른 오르막/내리막 판별
+        slope_status, pitch_flag = self.get_slope_status(pitch)
 
-        # 오른쪽 플래그 계산
-        if right_sum < (right_min + (right_max - right_min) * 0.30):
-            right_flag = slow
-        elif right_sum < (right_min + (right_max - right_min) * 0.65):
-            right_flag = maintain
-        else:
-            right_flag = fast
+        # 왼쪽 속도 플래그
+        left_flag, left_ratio = self.get_speed_flag(left_sum, left_min, left_max)
+
+        # 오른쪽 속도 플래그
+        right_flag, right_ratio = self.get_speed_flag(right_sum, right_min, right_max)
+
+        total_flag = left_flag + right_flag
+
+        print(f"left_flag: {left_flag}, right_flag: {right_flag}, sum: {total_flag}")
+        print(f"left ratio: {left_ratio*100:.1f}%, right ratio: {right_ratio*100:.1f}%")
+        print(f"[Pitch Filter] Raw: {pitch:.2f}, Filtered: {self.pitch_history[-1]:.2f}")
+        print(f"[Slope 판단] 경사 상태: {slope_status}, PWM: {pwm:.2f}")
         
-        # 메인 로직
-        if (left_sum <= (left_min + (left_max - left_min) * 0.1)) and (right_sum<=right_min + (right_max - right_min) * 0.1):
+        # 정지 조건
+        if left_ratio < 0.1 and right_ratio < 0.1:
             context["pwm"] = 0
-            return 
-        
-        # 감속 부분 (uphill과 downhill은 감속이 더 빨리 됨)
-        if left_flag+right_flag==0:
-            if pwm==18:
-                pwm=pwm # 최저 속도를 18cm/s로 설정정
-            if pitch_flag==flat:
-                pwm = pwm*0.9
-            elif pitch_flag==uphill:
-                pwm = pwm*0.9*0.9
-            elif pitch_flag==downhill:
-                pwm = pwm*0.9*0.85
- 
-        # 증속 부분 (uphill과 downhill은 증속이 더 늦게 됨)
-        elif left_flag+right_flag>=3:
-            if pwm==0:
-                pwm=20
+            return
+
+        # 감속 로직
+        if total_flag == 0:
+            if pwm <= self.MIN_PWM:
+                pwm = self.MIN_PWM
+            
+            # 평지
+            elif pitch_flag == self.PITCH_STATE['flat']: 
+                pwm *= 0.9
+                
+            # 오르막
+            elif pitch_flag == self.PITCH_STATE['uphill']:
+                pwm *= 0.95
+                
+            # 내리막
+            elif pitch_flag == self.PITCH_STATE['downhill']:
+                pwm *= 0.80
+
+        # 증속 로직
+        elif total_flag >= 3:
+            if pwm == 0:
+                pwm = 20
+                
             else:
-                if pitch_flag==flat:
-                    if pwm>=max_speed:
-                        pwm=max_speed
-                    else:
-                        pwm = pwm*1.1
-                elif pitch_flag==uphill:
-                    if pwm>=max_speed*0.9:
-                        pwm=max_speed*0.9
-                    else:
-                        pwm = pwm*1.08
-                elif pitch_flag==downhill:
-                    if pwm>=max_speed*0.85:
-                        pwm=max_speed*0.85
-                    else:
-                        pwm = pwm*1.06
+                # 평지
+                if pitch_flag == self.PITCH_STATE['flat']:
+                    pwm = min(pwm*1.08, self.MAX_SPEED)
                     
+                # 오르막
+                elif pitch_flag == self.PITCH_STATE['uphill']:
+                    pwm = min(pwm*1.3, self.MAX_SPEED*2)
+                    
+                # 내리막
+                elif pitch_flag == self.PITCH_STATE['downhill']:
+                    pwm = min(pwm*1.05, self.MAX_SPEED*0.8)
 
+        # 출력
         context["pwm"] = pwm
-        print("left flag : ", left_flag)
-        print("right_flag : ", right_flag)
-        print("sum : ",left_flag+right_flag)
-        print((left_sum-left_min)/(left_max - left_min)*100)
-        print((right_sum-right_min)/(right_max - right_min)*100)
-        
-        print(f"[Slope 판단] Pitch: {pitch:.2f}°, 경사 상태: {slope_status}")
-        print(f"[Slope 보정] 최종 PWM: {pwm:.2f}")
-
-
-# # 속도 유지 없을 경우 로직
-# class SpeedController:
-#     def __init__(self):
-#         pass
-
-#     # 평균값 계산용
-#     def calculate_row_sum(self, matrix):
-#         if not matrix or len(matrix) != 16 or any(len(row) != 32 for row in matrix):
-#             raise ValueError("입력 매트릭스는 16x32 형태여야 합니다.")
-
-#         row_sum = []
-#         for row in enumerate(matrix):
-#             row_sum.append(sum(row))
-
-#         return row_sum
-    
-#     # 왼쪽, 오른쪽 합 계산용
-#     def calculate_sum(self, context):
-#         fsr_matrix = context.get("fsr_matrix")
-#         if not fsr_matrix or len(fsr_matrix) != 16:
-#             raise ValueError("context에 유효한 fsr_matrix가 없습니다.")
-
-#         left_sum = 0
-#         right_sum = 0
-
-#         for row in fsr_matrix:
-#             left_sum += sum(row[0:16])  
-#             right_sum += sum(row[16:32]) 
-
-#         context["left_sum"] = left_sum
-#         context["right_sum"] = right_sum
-
-#     # 속도 제어
-#     def calculate_pwm(self, context):   
-#         stop = 0
-#         slow = 1
-#         fast = 3
-#         left_flag = 0
-#         right_flag = 0
-#         max_speed =50
-        
-#         left_sum = context.get('left_sum')
-#         right_sum = context.get('right_sum')
-#         left_min = context.get('left_min')
-#         right_min = context.get('right_min')
-#         left_max = context.get('left_max')
-#         right_max = context.get('right_max')
-#         pwm = context.get('pwm')
-
-#         if left_max==-9999 or right_max==-9999 or left_min==9999 or right_min==9999:
-#             pwm=0 
-#             return
-
-#         # 왼쪽 플래그 계산
-#         if left_sum < (left_min + (left_max - left_min) * 0.3):
-#             left_flag = stop
-#         elif left_sum < (left_min + (left_max - left_min) * 0.6):
-#             left_flag = slow
-#         else:
-#             left_flag = fast
-
-#         # 오른쪽 플래그 계산
-#         if right_sum < (right_min + (right_max - right_min) * 0.3):
-#             right_flag = stop
-#         elif right_sum < (right_min + (right_max - right_min) * 0.6):
-#             right_flag = slow
-#         else:
-#             right_flag = fast
-        
-#         # 메인 로직
-#         if left_flag+right_flag==stop+stop:
-#             pwm=0
-#         elif left_flag+right_flag==stop+slow:
-#             pwm=pwm*0.9
-#         elif left_flag+right_flag>=stop+fast:
-#             if pwm==0:
-#                 pwm=25
-#             else:
-#                 if pwm>=max_speed:
-#                     pwm=max_speed
-#                 else:
-#                     pwm = pwm*1.1
-        
-#         context["pwm"] = pwm
-#         print("left flag : ", left_flag)
-#         print("right_flag : ", right_flag)
-#         print("sum : ",left_flag+right_flag)
-#         print((left_sum-left_min)/(left_max - left_min)*100)
-#         print((right_sum-right_min)/(right_max - right_min)*100)

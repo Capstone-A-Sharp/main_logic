@@ -1,8 +1,8 @@
 class Calibration:
     def __init__(self):
-        self.left_history = []  # 최근 값 저장
+        self.left_history = []
         self.right_history = []
-        self.history_length = 10  # 최근 10번 값 기억
+        self.history_length = 10 
 
     def reset_minmax(self,context):
         # 스위치 껐다가 켰을 때 
