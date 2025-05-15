@@ -31,7 +31,7 @@ class SpeedController:
     # 오르막/내리막 판별
     def get_slope_status(self, pitch: float) -> Tuple[str, int]:
         filtered_pitch = self.filter_pitch(pitch)
-        if filtered_pitch > 3:
+        if filtered_pitch > 5:
             slope_status = "uphill"
             pitch_flag = self.PITCH_STATE['uphill']
         elif filtered_pitch < -3:
@@ -97,16 +97,16 @@ class SpeedController:
                 pwm = self.MIN_PWM
             
             # 평지
-            elif pitch_flag == self.PITCH_STATE['flat']: 
-                pwm *= 0.9
+            # elif pitch_flag == self.PITCH_STATE['flat']: 
+            pwm *= 0.9
                 
             # 오르막
-            elif pitch_flag == self.PITCH_STATE['uphill']:
-                pwm *= 0.95
+            # elif pitch_flag == self.PITCH_STATE['uphill']:
+            #    pwm *= 0.95
                 
             # 내리막
-            elif pitch_flag == self.PITCH_STATE['downhill']:
-                pwm *= 0.80
+            # elif pitch_flag == self.PITCH_STATE['downhill']:
+            #    pwm *= 0.80
 
         # 증속 로직
         elif total_flag >= 3:
@@ -114,17 +114,22 @@ class SpeedController:
                 pwm = 20
                 
             else:
-                # 평지
-                if pitch_flag == self.PITCH_STATE['flat']:
-                    pwm = min(pwm*1.08, self.MAX_SPEED)
+                pwm = min(pwm*1.08, self.MAX_SPEED)
+                # # 평지
+                # if pitch_flag == self.PITCH_STATE['flat']:
+                #     pwm = min(pwm*1.08, self.MAX_SPEED)
                     
-                # 오르막
-                elif pitch_flag == self.PITCH_STATE['uphill']:
-                    pwm = min(pwm*1.3, self.MAX_SPEED*2)
+                # # 오르막
+                # elif pitch_flag == self.PITCH_STATE['uphill']:
+                #     pwm = min(pwm*1.3, self.MAX_SPEED*2)
                     
-                # 내리막
-                elif pitch_flag == self.PITCH_STATE['downhill']:
-                    pwm = min(pwm*1.05, self.MAX_SPEED*0.8)
+                # # 내리막
+                # elif pitch_flag == self.PITCH_STATE['downhill']:
+                #     pwm = min(pwm*1.05, self.MAX_SPEED*0.8)
 
+        # 후진일 경우 0.5배
+        if context["motor_switch"]==1:
+            pwm=pwm*0.5
+        
         # 출력
         context["pwm"] = pwm

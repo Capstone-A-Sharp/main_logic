@@ -25,3 +25,6 @@ def parse_serial_line(line, context):
     wheel_data = data.get("Wheel_Speed", {})
     context["speedL"] = wheel_data.get("L", 0)
     context["speedR"] = wheel_data.get("R", 0)
+    
+    # motor_switch
+    context["motor_switch"]=data.get("motor_switch",0);

@@ -18,7 +18,8 @@ def init_context():
         "speedL": 0,
         "speedR": 0,
         "calib_flag": 0,
-        "calib_switch": 0
+        "calib_switch": 0,
+        "motor_switch": 0
     }
 
 # ✨ Serial data로 Calibration 값 확인해서 로직 적용하기
