@@ -27,4 +27,4 @@ def parse_serial_line(line, context):
     context["speedR"] = wheel_data.get("R", 0)
     
     # motor_switch
-    context["motor_switch"]=data.get("motor_switch",0);
+    context["motor_switch"]=data.get("motor_switch")

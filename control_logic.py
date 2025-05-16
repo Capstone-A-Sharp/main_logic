@@ -128,6 +128,4 @@ class SpeedController:
             #     elif pitch_flag == self.PITCH_STATE['downhill']:
             #         pwm = min(pwm*1.05, self.MAX_SPEED*0.8)
 
-
-        
         context["pwm"] = pwm
