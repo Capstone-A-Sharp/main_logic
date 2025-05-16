@@ -50,6 +50,7 @@ def log_debug_info(context):
     print(f"Left 합: {context['left_sum']}, Right 합: {context['right_sum']}")
     print(f"Left [Min: {context['left_min']}, Max: {context['left_max']}], "
           f"Right [Min: {context['right_min']}, Max: {context['right_max']}]")
+    print(f"motor_switch: {context['motor_switch']}")
 
 # 메인 함수
 def update_wrapper():

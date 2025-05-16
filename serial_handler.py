@@ -9,8 +9,12 @@ def connect_arduino():
 
 def send_pwm_to_arduino(ser, context):
     pwm_value = int(context.get("pwm"))  
+    if context["motor_switch"]==1:
+        message = f"{pwm_value}\n" 
+    else:
+        message = f"{min(pwm_value*0.5,30)}\n" 
+        
     
-    message = f"{pwm_value}\n"  # 문자열 + 개행문자
     try:
         ser.write(message.encode('utf-8'))  # UTF-8 인코딩 후 전송
         print(f"[시리얼 전송] PWM: {pwm_value}")
